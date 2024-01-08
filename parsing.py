@@ -1,7 +1,9 @@
 import csv
 from urllib.parse import urljoin
 
+import numpy as np
 from tqdm import tqdm
+import pandas as pd
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
@@ -31,7 +33,7 @@ def get_text_or_none(element, selector):
     try:
         return element.find_element(By.CSS_SELECTOR, selector).text.strip()
     except NoSuchElementException:
-        return None
+        return np.nan
 
 
 def parse(product_element: WebElement) -> Vacancy:
@@ -50,20 +52,21 @@ def parse(product_element: WebElement) -> Vacancy:
     )
 
 
-def export_to_csv(file_name: str, vacancies: list[Vacancy]) -> None:
-    with open(file_name, "+a", newline="") as csvfile:
-        csvwriter = csv.writer(csvfile)
-        rows = [[v.title,
-                 v.company,
-                 v.location,
-                 v.category,
-                 v.employment_type,
-                 v.experience,
-                 v.language_level,
-                 v.description]
-                for v in vacancies]
+def export_to_csv(vacancies: list[Vacancy], file_name: str = 'db') -> None:
+    data = {
+        'Title': [v.title for v in vacancies],
+        'Company': [v.company for v in vacancies],
+        'Location': [v.location for v in vacancies],
+        'Category': [v.category for v in vacancies],
+        'Employment Type': [v.employment_type for v in vacancies],
+        'Experience': [v.experience for v in vacancies],
+        'Language Level': [v.language_level for v in vacancies],
+        'Description': [v.description for v in vacancies],
+    }
 
-        csvwriter.writerows(rows)
+    df = pd.DataFrame(data)
+
+    df.to_csv(f'{file_name}.csv', mode='a', index=False)
 
 
 def scrape_page(url, name="db"):
@@ -72,7 +75,7 @@ def scrape_page(url, name="db"):
         while True:
             products = driver.find_elements(By.CLASS_NAME, 'job-list-item')
             products = [parse(product) for product in tqdm(products, desc=f"Scraping {name}")]
-            export_to_csv(f"{name}.csv", products)
+            export_to_csv(products)
             if not pagination(driver):
                 break
 
