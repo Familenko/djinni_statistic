@@ -46,30 +46,33 @@ def pagination(driver):
         return False
 
 
-def parse(product_element: WebElement) -> Vacancy:
-    title = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__title a').text.strip()
-    # company = product_element.find_element(By.CSS_SELECTOR, '.d-flex a').text.strip()
-    # location = product_element.find_element(By.CSS_SELECTOR, '.location-text').text.strip()
-    # category = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__job-info .nobr:nth-child(2)').text.strip()
-    # employment_type = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__job-info .nobr:nth-child(3)').text.strip()
-    # experience = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__job-info .nobr:nth-child(4)').text.strip()
-    # language_level = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__job-info .nobr:nth-child(5)').text.strip()
-    # description = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__description').text.strip()
+def get_text_or_none(element, selector):
+    try:
+        return element.find_element(By.CSS_SELECTOR, selector).text.strip()
+    except NoSuchElementException:
+        return None
 
-    return Vacancy(title,)
-                   # company,
-                   # location,
-                   # category,
-                   # employment_type,
-                   # experience,
-                   # language_level,
-                   # description)
+
+def parse(product_element: WebElement) -> Vacancy:
+    title = get_text_or_none(product_element, '.job-list-item__title a')
+    company = get_text_or_none(product_element, '.d-flex a')
+    location = get_text_or_none(product_element, '.location-text')
+    category = get_text_or_none(product_element, '.job-list-item__job-info .nobr:nth-child(2)')
+    employment_type = get_text_or_none(product_element, '.job-list-item__job-info .nobr:nth-child(3)')
+    experience = get_text_or_none(product_element, '.job-list-item__job-info .nobr:nth-child(4)')
+    language_level = get_text_or_none(product_element, '.job-list-item__job-info .nobr:nth-child(5)')
+    description = get_text_or_none(product_element, '.job-list-item__description')
+
+    return Vacancy(
+        title, company, location, category,
+        employment_type, experience, language_level, description
+    )
 
 
 def export_to_csv(file_name: str, vacancies: list[Vacancy]) -> None:
     with open(file_name, "+a", newline="") as csvfile:
         csvwriter = csv.writer(csvfile)
-        rows = [[v.title]
+        rows = [[v.title, v.company, v.location, v.category, v.employment_type, v.experience, v.language_level, v.description]
                 for v in vacancies]
 
         csvwriter.writerows(rows)
