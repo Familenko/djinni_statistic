@@ -1,36 +1,17 @@
 import csv
 from urllib.parse import urljoin
 
-import selenium
-from selenium.webdriver.support.wait import WebDriverWait
 from tqdm import tqdm
 
-from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver, WebElement
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webdriver import WebElement
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
 
 from driver import ChromeWebDriver
 from models import Vacancy
 
 BASE_URL = "https://djinni.co/"
-JOBS_URL = urljoin(BASE_URL, "jobs/?primary_keyword=Python&")
-
-PAGES = {
-    "one_year": 'https://djinni.co/jobs/?primary_keyword=Python&exp_level=1y',
-    "two_years": 'https://djinni.co/jobs/?primary_keyword=Python&exp_level=2y',
-    "three_years": 'https://djinni.co/jobs/?primary_keyword=Python&exp_level=3y',
-    # "no_experience": urljoin(JOBS_URL, "exp_level=no_exp"),
-    # "one_year": urljoin(JOBS_URL, "exp_level=1y"),
-    # "two_years": urljoin(JOBS_URL, "exp_level=2y"),
-    # "three_years": urljoin(JOBS_URL, "exp_level=3y"),
-    # "five_years": urljoin(JOBS_URL, "exp_level=5y"),
-    #
-    # "remote": urljoin(JOBS_URL, "employment=remote"),
-    # "part_time": urljoin(JOBS_URL, "employment=parttime"),
-    # "office": urljoin(JOBS_URL, "employment=office"),
-}
+JOBS_URL = urljoin(BASE_URL, "jobs/?primary_keyword=Python")
 
 
 def pagination(driver):
@@ -72,13 +53,20 @@ def parse(product_element: WebElement) -> Vacancy:
 def export_to_csv(file_name: str, vacancies: list[Vacancy]) -> None:
     with open(file_name, "+a", newline="") as csvfile:
         csvwriter = csv.writer(csvfile)
-        rows = [[v.title, v.company, v.location, v.category, v.employment_type, v.experience, v.language_level, v.description]
+        rows = [[v.title,
+                 v.company,
+                 v.location,
+                 v.category,
+                 v.employment_type,
+                 v.experience,
+                 v.language_level,
+                 v.description]
                 for v in vacancies]
 
         csvwriter.writerows(rows)
 
 
-def scrape_page(name, url):
+def scrape_page(url, name="db"):
     with ChromeWebDriver() as driver:
         driver.get(url)
         while True:
@@ -89,10 +77,5 @@ def scrape_page(name, url):
                 break
 
 
-def get_all_products() -> None:
-    for name, url in PAGES.items():
-        scrape_page(name, url)
-
-
 if __name__ == "__main__":
-    get_all_products()
+    scrape_page(JOBS_URL)
