@@ -1,6 +1,7 @@
 import csv
 from urllib.parse import urljoin
 
+import selenium
 from selenium.webdriver.support.wait import WebDriverWait
 from tqdm import tqdm
 
@@ -8,6 +9,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver, WebElement
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
 
 from driver import ChromeWebDriver
 from models import Vacancy
@@ -32,8 +34,16 @@ PAGES = {
 
 
 def pagination(driver):
-    next_button = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "bi-chevron-right")))
-    next_button.click()
+    try:
+        next_page = driver.find_element(By.CSS_SELECTOR, '.page-item:last-child a')
+    except NoSuchElementException:
+        return False
+
+    try:
+        next_page.click()
+        return True
+    except ElementClickInterceptedException:
+        return False
 
 
 def parse(product_element: WebElement) -> Vacancy:
@@ -57,7 +67,7 @@ def parse(product_element: WebElement) -> Vacancy:
 
 
 def export_to_csv(file_name: str, vacancies: list[Vacancy]) -> None:
-    with open(file_name, "w", newline="") as csvfile:
+    with open(file_name, "+a", newline="") as csvfile:
         csvwriter = csv.writer(csvfile)
         rows = [[v.title]
                 for v in vacancies]
@@ -68,11 +78,12 @@ def export_to_csv(file_name: str, vacancies: list[Vacancy]) -> None:
 def scrape_page(name, url):
     with ChromeWebDriver() as driver:
         driver.get(url)
-        products = driver.find_elements(By.CLASS_NAME, 'job-list-item')
-        print(products)
-        products = [parse(product) for product in tqdm(products, desc=f"Scraping {name}")]
-        export_to_csv(f"{name}.csv", products)
-        # pagination(driver)
+        while True:
+            products = driver.find_elements(By.CLASS_NAME, 'job-list-item')
+            products = [parse(product) for product in tqdm(products, desc=f"Scraping {name}")]
+            export_to_csv(f"{name}.csv", products)
+            if not pagination(driver):
+                break
 
 
 def get_all_products() -> None:
