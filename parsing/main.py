@@ -2,11 +2,13 @@ import csv
 from urllib.parse import urljoin
 
 import numpy as np
+from selenium.webdriver.support.wait import WebDriverWait
 from tqdm import tqdm
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebElement
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
+from selenium.webdriver.support import expected_conditions as EC
 
 from driver import ChromeWebDriver
 from models import Vacancies
@@ -37,8 +39,8 @@ def get_text_or_none(element, selector):
 
 def parse(product_element: WebElement) -> Vacancies:
     title = get_text_or_none(product_element, '.job-list-item__title a')
+    company = get_text_or_none(product_element, '.mr-2[href*="/jobs/?company="]')
     location = get_text_or_none(product_element, '.location-text')
-    description = get_text_or_none(product_element, '.job-list-item__description')
 
     views_count = get_text_or_none(product_element, '.mr-2[title*="відгуків"]')
     reviews_count = get_text_or_none(product_element, '.mr-2[title*="переглядів"]')
@@ -46,8 +48,11 @@ def parse(product_element: WebElement) -> Vacancies:
     requirements_elements = product_element.find_elements(By.CSS_SELECTOR, '.job-list-item__job-info .nobr')
     requirements = [element.text.strip() for element in requirements_elements]
 
-    company_element = product_element.find_element(By.CSS_SELECTOR, '.mr-2[href*="/jobs/?company="]')
-    company = company_element.text.strip() if company_element else np.nan
+    with ChromeWebDriver() as driver2:
+        detailed_view = product_element.find_element(By.CSS_SELECTOR, '.job-list-item__title a').get_attribute('href')
+        driver2.get(detailed_view)
+        WebDriverWait(driver2, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.mb-4')))
+        description = driver2.find_element(By.CSS_SELECTOR, '.mb-4').text.strip()
 
     return Vacancies(
         title=title,
@@ -56,7 +61,7 @@ def parse(product_element: WebElement) -> Vacancies:
         requirements=requirements,
         description=description,
         views_count=views_count,
-        reviews_count=reviews_count
+        reviews_count=reviews_count,
     )
 
 
@@ -64,7 +69,7 @@ def create_csv(file_name: str) -> None:
     with open(file_name, "w", newline="") as csvfile:
         csvwriter = csv.writer(csvfile)
         rows = [["title", "company", "location", "requirements",
-                 "description", "views_count", "reviews_count"]]
+                 "description", "views_count", "reviews_count",]]
         csvwriter.writerows(rows)
 
 
@@ -72,7 +77,7 @@ def export_to_csv(file_name: str, vacancies: list[Vacancies]) -> None:
     with open(file_name, "+a", newline="") as csvfile:
         csvwriter = csv.writer(csvfile)
         rows = [[v.title, v.company, v.location, v.requirements, v.description, v.views_count,
-                 v.reviews_count]
+                 v.reviews_count,]
                 for v in vacancies]
 
         csvwriter.writerows(rows)
