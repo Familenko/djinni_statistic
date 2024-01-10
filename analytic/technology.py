@@ -4,7 +4,6 @@ technologies_for_python_developer = [
     "mysql",
     "git",
     "postgresql",
-    "python",
     "rest",
     "nosql",
     "django",
