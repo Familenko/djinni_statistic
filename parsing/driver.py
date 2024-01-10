@@ -12,8 +12,5 @@ class ChromeWebDriver:
     def __enter__(self) -> WebDriver:
         return self._driver
 
-    def __exit__(self,
-                 exc_type: type,
-                 exc_val: Exception,
-                 exc_tb: type) -> None:
+    def __exit__(self, exc_type: type, exc_val: Exception, exc_tb: type) -> None:
         self._driver.close()
