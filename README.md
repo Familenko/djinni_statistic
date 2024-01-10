@@ -29,6 +29,3 @@ Follow these simple steps to get started with the project:
     ```
 
 Feel free to explore and customize the project based on your analysis needs. Happy coding!
-
-
-
