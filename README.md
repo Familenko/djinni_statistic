@@ -12,20 +12,30 @@ Follow these simple steps to get started with the project:
     ```bash
     git clone https://github.com/Familenko/djinni_statistic.git
     ```
+   
+2. **Create a virtual environment:**
+    ```bash
+    python -m venv venv
+    ```
+   
+3. **Activate the virtual environment:**
+    ```bash
+    source venv/bin/activate
+    ```
 
-2. **Install Requirements:**
+4. **Install Requirements:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3. **Run the Web Scraping Script:**
+5. **Run the Web Scraping Script:**
     ```bash
     python parsing/main.py
     ```
 
-4. **Run the Analysis Script:**
+6. **Run the Analysis Script:**
     ```bash
-    python analysis/main.py
+    python analytic/main.analytic
     ```
 
 Feel free to explore and customize the project based on your analysis needs. Happy coding!
