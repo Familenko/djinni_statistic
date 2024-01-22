@@ -33,9 +33,9 @@ Follow these simple steps to get started with the project:
     python parsing/main.py
     ```
 
-6. **Run the Analysis Script:**
-    ```bash
-    python analytic/main.analytic
+6. **Open Analytic file for deep info:**
+    ```
+    python analytic/main.ipynb
     ```
 
 Feel free to explore and customize the project based on your analysis needs. Happy coding!
